@@ -1,3 +1,11 @@
+function effectBlock(name, meta, effect) {
+  return `
+    <div class="background-block">
+      <span class="background-name">${name}${meta ? ` <span class="bonus">(${meta})</span>` : ""}</span>
+      <span class="background-effect">${effect}</span>
+    </div>`;
+}
+
 function renderCharacter(character) {
   const sheet = document.getElementById("sheet");
 
@@ -12,12 +20,17 @@ function renderCharacter(character) {
     .join("");
 
   const backgroundBlocks = character.backgrounds
+    .map((bg) => effectBlock(bg.name, `+1 ${bg.bonus}`, bg.effect))
+    .join("");
+
+  // Only rendered when a background (e.g. Warlock, Shaman) unlocks a Dark Pacts subsystem.
+  const subsystemBlocks = character.subsystems
     .map(
-      (bg) => `
-      <div class="background-block">
-        <span class="background-name">${bg.name} <span class="bonus">(+1 ${bg.bonus})</span></span>
-        <span class="background-effect">${bg.effect}</span>
-      </div>`
+      (sub) => `
+      <div class="sheet-row">
+        <span class="label">${sub.label}</span>
+      </div>
+      ${sub.items.map((item) => effectBlock(item.name, item.meta, item.effect)).join("")}`
     )
     .join("");
 
@@ -35,6 +48,7 @@ function renderCharacter(character) {
       <span class="label">Backgrounds</span>
     </div>
     ${backgroundBlocks}
+    ${subsystemBlocks}
     <div class="sheet-row">
       <span class="label">HP</span>
       <span class="value">${character.hp}</span>
