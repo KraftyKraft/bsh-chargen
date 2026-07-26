@@ -83,3 +83,39 @@ const ORIGINS = {
 };
 
 const ORIGIN_NAMES = Object.keys(ORIGINS);
+
+// Backgrounds per origin, per SRD p.8-9. "unique" backgrounds can't be combined with each other.
+const BACKGROUNDS = {
+  Barbarian: [
+    { name: "Berserker", unique: true, bonus: "STR", effect: "When you go berserk, add a d6 to the damage you deal. The damage you receive is divided by 2. Your rage stops when you roll a 1 on the d6. You need a long rest to be able to go berserk again." },
+    { name: "Chieftain", unique: false, bonus: "STR", effect: "You can use Strength instead of Charisma when trying to intimidate someone." },
+    { name: "Herbalist", unique: false, bonus: "INT", effect: "You can create d6 doses of healing balm (each one restores d6 + Level HP), hallucinogenic drugs, or poison (d6 damage per dose). You need a long rest close to nature to replenish your stock." },
+    { name: "Hunter", unique: false, bonus: "DEX", effect: "In combat your first arrow always hits, and you add your level to its damage." },
+    { name: "Raider", unique: false, bonus: "STR", effect: "When you get a critical success on an attack roll, you inflict damage equal to your Strength score (no need to roll the damage)." },
+    { name: "Scout", unique: false, bonus: "WIS", effect: "You get Advantage on your Initiative rolls." },
+    { name: "Shaman", unique: false, bonus: "WIS", effect: "You have made a pact with two spirits (see p. 29)." },
+    { name: "Storyteller", unique: false, bonus: "CHA", effect: "You always know d4 interesting things about objects, places, or people (one roll per session). While you tell a story, your audience doesn't notice what happens Nearby." },
+    { name: "Survivor", unique: false, bonus: "CON", effect: "It takes you d6 minutes to find something that can be used as a knife or club." },
+    { name: "Wildling", unique: false, bonus: "CON", effect: "You can take a long rest anywhere, regardless of the situation." },
+  ],
+  Civilised: [
+    { name: "Bodyguard", unique: false, bonus: "CON", effect: "If you use an action to protect a Close character during your turn, you absorb any damage from attacks against them, but you divide it by two (rounded up)." },
+    { name: "Bookworm", unique: false, bonus: "INT", effect: "You can substitute any attribute test with an INT test (explain how and why your knowledge helps you). Replenishes after a long rest." },
+    { name: "Diplomat", unique: false, bonus: "CHA", effect: "You know two additional languages (see p. 25) and can make yourself understood by anyone willing to do so. If all you do is talk you can act first at the beginning of any combat Turn." },
+    { name: "Inventor", unique: true, bonus: "INT", effect: "You know how to build two scientific marvels (see p. 44)." },
+    { name: "Legionnaire", unique: false, bonus: "STR", effect: "You are used to fighting in groups. Three times per session, a Nearby ally can re-roll a failed dodge, parry, or attack roll." },
+    { name: "Sophist", unique: false, bonus: "CHA", effect: "You can make someone believe a blatant lie if you succeed at a CHA test. The \"effect\" lasts one hour. Works once per session." },
+    { name: "Street urchin", unique: false, bonus: "DEX", effect: "Get Advantage on actions involving stealth, pick-pocketing, eavesdropping, and streetwise." },
+    { name: "Surgeon", unique: false, bonus: "INT", effect: "Make an INT test when attending someone with 0 HP. They roll a d4 on the Helpless table instead of a d6 if you succeed." },
+    { name: "Sword master", unique: false, bonus: "DEX", effect: "You can use DEX instead of STR when making a melee attacks with one-handed bladed weapons." },
+  ],
+  Decadent: [
+    { name: "Assassin", unique: true, bonus: "DEX", effect: "Your first attack against an unaware target is an automatic hit that deals damage equal to your Dexterity score." },
+    { name: "Changeling", unique: false, bonus: "CHA", effect: "You were abducted as a baby and raised by very different folk. Choose two faerie ties (see p. 42)." },
+    { name: "Forbidden knowledge", unique: false, bonus: "INT", effect: "You start the game with 4 randomly selected spells (see p. 38)." },
+    { name: "Pit-fighter", unique: false, bonus: "STR", effect: "Your unarmed damage is equal to your weapon damage." },
+    { name: "Snake blood", unique: false, bonus: "CON", effect: "You're immune to poisons and venoms." },
+    { name: "Vicious", unique: false, bonus: "STR", effect: "Your weapon damage die is now d8 (d6 unarmed)." },
+    { name: "Warlock", unique: false, bonus: "CHA", effect: "You have a pact with two demons (see p. 34)." },
+  ],
+};

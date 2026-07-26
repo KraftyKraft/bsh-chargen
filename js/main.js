@@ -23,7 +23,9 @@ function renderCharacter(character) {
     </div>
     <div class="sheet-row">
       <span class="label">Backgrounds</span>
-      <span class="value">${character.backgrounds.join(", ")}</span>
+      <span class="value">${character.backgrounds
+        .map((bg) => `${bg.name} (+1 ${bg.bonus})`)
+        .join(", ")}</span>
     </div>
     <div class="sheet-row">
       <span class="label">HP</span>
