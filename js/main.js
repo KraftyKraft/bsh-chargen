@@ -66,6 +66,10 @@ function renderCharacter(character) {
       <span class="value">${equipmentText(character.equipment)}</span>
     </div>
     <div class="sheet-row">
+      <span class="label">Damage</span>
+      <span class="value">${character.damage.weapon} weapon, ${character.damage.unarmed} unarmed</span>
+    </div>
+    <div class="sheet-row">
       <span class="label">HP</span>
       <span class="value">${character.hp}</span>
     </div>

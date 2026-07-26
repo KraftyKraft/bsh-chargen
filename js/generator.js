@@ -105,12 +105,26 @@ function rollEquipment(originName) {
   };
 }
 
+// Vicious upgrades both dice; Pit-fighter then matches unarmed to the (possibly upgraded) weapon die. SRD p.9.
+function calculateDamage(backgrounds) {
+  const hasVicious = backgrounds.some((bg) => bg.name === "Vicious");
+  const hasPitFighter = backgrounds.some((bg) => bg.name === "Pit-fighter");
+
+  const weapon = hasVicious ? "d8" : BASE_WEAPON_DAMAGE;
+  let unarmed = BASE_UNARMED_DAMAGE;
+  if (hasVicious) unarmed = "d6";
+  if (hasPitFighter) unarmed = weapon;
+
+  return { weapon, unarmed };
+}
+
 function generateCharacter() {
   const origin = rollOrigin();
   const backgrounds = pickBackgrounds(origin.name);
   const attributes = applyBackgroundBonuses(rollAttributes(), backgrounds);
   const subsystems = rollSubsystems(backgrounds);
   const equipment = rollEquipment(origin.name);
+  const damage = calculateDamage(backgrounds);
 
   return {
     attributes,
@@ -118,6 +132,7 @@ function generateCharacter() {
     backgrounds,
     subsystems,
     equipment,
+    damage,
     hp: attributes.CON,
     doom: "d6",
   };

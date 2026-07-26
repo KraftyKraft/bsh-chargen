@@ -127,6 +127,10 @@ const STARTING_COINS = {
   Decadent: 100,
 };
 
+// Base weapon/unarmed damage dice, per SRD p.9 (3.3.3). Vicious and Pit-fighter modify these.
+const BASE_WEAPON_DAMAGE = "d6";
+const BASE_UNARMED_DAMAGE = "d4";
+
 // Weapon tables per origin, per SRD p.12. Roll d10: 1-9 map to the list, 10 = no weapon.
 // Two-handed weapons (marked * in the SRD) give Advantage on damage rolls (p.5).
 const WEAPONS = {
