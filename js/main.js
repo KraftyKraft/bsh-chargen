@@ -15,7 +15,11 @@ function renderCharacter(character) {
     <div class="attributes">${attrRows}</div>
     <div class="sheet-row">
       <span class="label">Origin</span>
-      <span class="value">${character.origin}</span>
+      <span class="value">${character.origin.name}</span>
+    </div>
+    <div class="sheet-row">
+      <span class="label">Born...</span>
+      <span class="value">${character.origin.story}</span>
     </div>
     <div class="sheet-row">
       <span class="label">Backgrounds</span>

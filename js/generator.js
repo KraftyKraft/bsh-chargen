@@ -11,12 +11,20 @@ function rollAttributes() {
   return attributes;
 }
 
+function rollOrigin() {
+  const name = ORIGIN_NAMES[rollDie(ORIGIN_NAMES.length) - 1];
+  const stories = ORIGINS[name];
+  const story = stories[rollDie(stories.length) - 1];
+  return { name, story };
+}
+
 function generateCharacter() {
   const attributes = rollAttributes();
+  const origin = rollOrigin();
 
   return {
     attributes,
-    origin: "TBD",
+    origin,
     backgrounds: ["TBD", "TBD", "TBD"],
     hp: attributes.CON,
     doom: "d6",
