@@ -1,8 +1,29 @@
+// Builds one combined regex (named group per GLOSSARY entry) so the source text
+// is scanned in a single pass — the inserted tooltip markup is never re-scanned.
+const GLOSSARY_PATTERN = new RegExp(
+  GLOSSARY.map((entry) => `(?<${entry.key}>${entry.pattern})`).join("|"),
+  "g"
+);
+
+function glossaryIcon(match, entry) {
+  return `${match}<span class="info-icon" tabindex="0">?<span class="tooltip-text"><strong>${entry.term}</strong> ${entry.text} <em>(SRD p.${entry.page})</em></span></span>`;
+}
+
+// Appends a "?" tooltip icon after any glossary term found in the text. Safe to
+// call on any string — text with no matches is returned unchanged.
+function withGlossary(text) {
+  return String(text).replace(GLOSSARY_PATTERN, (match, ...rest) => {
+    const groups = rest[rest.length - 1];
+    const entry = GLOSSARY.find((g) => groups[g.key] !== undefined);
+    return glossaryIcon(match, entry);
+  });
+}
+
 function effectBlock(name, meta, effect) {
   return `
     <div class="background-block">
-      <span class="background-name">${name}${meta ? ` <span class="bonus">(${meta})</span>` : ""}</span>
-      <span class="background-effect">${effect}</span>
+      <span class="background-name">${withGlossary(name)}${meta ? ` <span class="bonus">(${withGlossary(meta)})</span>` : ""}</span>
+      <span class="background-effect">${withGlossary(effect)}</span>
     </div>`;
 }
 
@@ -36,7 +57,7 @@ function renderCharacter(character) {
     .map(
       (sub) => `
       <div class="sheet-row">
-        <span class="label">${sub.label}</span>
+        <span class="label">${withGlossary(sub.label)}</span>
       </div>
       ${sub.items.map((item) => effectBlock(item.name, item.meta, item.effect)).join("")}`
     )
@@ -50,7 +71,7 @@ function renderCharacter(character) {
     </div>
     <div class="sheet-row">
       <span class="label">Born...</span>
-      <span class="value">${character.origin.story}</span>
+      <span class="value">${withGlossary(character.origin.story)}</span>
     </div>
     <div class="sheet-row">
       <span class="label">Backgrounds</span>
@@ -63,7 +84,7 @@ function renderCharacter(character) {
     </div>
     <div class="sheet-row">
       <span class="label">Equipment</span>
-      <span class="value">${equipmentText(character.equipment)}</span>
+      <span class="value">${withGlossary(equipmentText(character.equipment))}</span>
     </div>
     <div class="sheet-row">
       <span class="label">Damage</span>
@@ -74,7 +95,7 @@ function renderCharacter(character) {
       <span class="value">${character.hp}</span>
     </div>
     <div class="sheet-row">
-      <span class="label">Doom</span>
+      <span class="label">${withGlossary("Doom")}</span>
       <span class="value">${character.doom}</span>
     </div>
   `;

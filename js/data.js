@@ -285,3 +285,29 @@ const SUBSYSTEMS_BY_BACKGROUND = {
   Inventor: { label: "Twisted Science", table: TWISTED_SCIENCE_MARVELS, count: 2 },
   "Forbidden knowledge": { label: "Sorcery — Spells", table: SPELLS, count: 4, weighted: true },
 };
+
+// Rules glossary: any rendered text matching `pattern` gets a "?" tooltip icon appended.
+// To add a new tooltip, just push another entry here — no other code changes needed.
+const GLOSSARY = [
+  {
+    key: "doom",
+    pattern: "\\bDoom\\b",
+    term: "Doom",
+    text: "A Usage die (starts at Ud6) you roll when you push your luck: repeating an action in combat, using a Gift that requires it, or on a critical failure. Once depleted, you're Doomed — Disadvantage on everything until a long rest.",
+    page: 4,
+  },
+  {
+    key: "usageDie",
+    pattern: "Ud\\d+",
+    term: "Usage Die",
+    text: "Represents a limited resource. Roll it when used: a result of 1-2 downgrades it one step (Ud20>Ud12>Ud10>Ud8>Ud6>Ud4). It's depleted after a 1-2 on a Ud4.",
+    page: 2,
+  },
+  {
+    key: "inventionPoints",
+    pattern: "inv\\. pts",
+    term: "Invention Points",
+    text: "How many points an Inventor has to build gadgets, equal to their INT score, refreshed weekly. Keeping a built gadget active costs half its build cost in points every week after that (maintenance).",
+    page: 21,
+  },
+];

@@ -140,3 +140,49 @@ main {
   text-align: center;
   font-style: italic;
 }
+
+.info-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  margin-left: 0.25rem;
+  border-radius: 50%;
+  background: var(--border);
+  color: var(--text);
+  font-size: 0.7rem;
+  font-style: normal;
+  cursor: help;
+  vertical-align: middle;
+}
+
+.info-icon .tooltip-text {
+  display: none;
+  position: absolute;
+  bottom: 130%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 240px;
+  background: var(--bg);
+  border: 1px solid var(--accent);
+  color: var(--text);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  padding: 0.5rem 0.6rem;
+  border-radius: 4px;
+  text-align: left;
+  white-space: normal;
+  z-index: 10;
+}
+
+.info-icon:hover .tooltip-text,
+.info-icon:focus .tooltip-text {
+  display: block;
+}
+
+.tooltip-text em {
+  color: var(--muted);
+}
