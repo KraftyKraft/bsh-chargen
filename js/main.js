@@ -11,6 +11,16 @@ function renderCharacter(character) {
     )
     .join("");
 
+  const backgroundBlocks = character.backgrounds
+    .map(
+      (bg) => `
+      <div class="background-block">
+        <span class="background-name">${bg.name} <span class="bonus">(+1 ${bg.bonus})</span></span>
+        <span class="background-effect">${bg.effect}</span>
+      </div>`
+    )
+    .join("");
+
   sheet.innerHTML = `
     <div class="attributes">${attrRows}</div>
     <div class="sheet-row">
@@ -23,10 +33,8 @@ function renderCharacter(character) {
     </div>
     <div class="sheet-row">
       <span class="label">Backgrounds</span>
-      <span class="value">${character.backgrounds
-        .map((bg) => `${bg.name} (+1 ${bg.bonus})`)
-        .join(", ")}</span>
     </div>
+    ${backgroundBlocks}
     <div class="sheet-row">
       <span class="label">HP</span>
       <span class="value">${character.hp}</span>

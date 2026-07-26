@@ -67,16 +67,15 @@ main {
   padding: 1.5rem;
 }
 
+.sheet > *:not(:last-child) {
+  border-bottom: 1px solid var(--border);
+}
+
 .sheet-row {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
   padding: 0.6rem 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.sheet-row:last-child {
-  border-bottom: none;
 }
 
 .sheet-row .label {
@@ -86,6 +85,27 @@ main {
 
 .sheet-row .value {
   text-align: right;
+}
+
+.background-block {
+  padding: 0.6rem 0;
+}
+
+.background-block .background-name {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.background-block .background-name .bonus {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.background-block .background-effect {
+  display: block;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.4;
 }
 
 .attributes {
