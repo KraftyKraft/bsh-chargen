@@ -6,6 +6,14 @@ function effectBlock(name, meta, effect) {
     </div>`;
 }
 
+function equipmentText(equipment) {
+  const weaponNames = equipment.weapons.map(
+    (w) => w.name + (w.twoHanded ? " (two-handed)" : "")
+  );
+  if (weaponNames.length === 0) return "A set of clothes. No weapons.";
+  return `A set of clothes, ${weaponNames.join(", ")}.`;
+}
+
 function renderCharacter(character) {
   const sheet = document.getElementById("sheet");
 
@@ -49,6 +57,14 @@ function renderCharacter(character) {
     </div>
     ${backgroundBlocks}
     ${subsystemBlocks}
+    <div class="sheet-row">
+      <span class="label">Coins</span>
+      <span class="value">${character.equipment.coins}</span>
+    </div>
+    <div class="sheet-row">
+      <span class="label">Equipment</span>
+      <span class="value">${equipmentText(character.equipment)}</span>
+    </div>
     <div class="sheet-row">
       <span class="label">HP</span>
       <span class="value">${character.hp}</span>

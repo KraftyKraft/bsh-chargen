@@ -86,17 +86,38 @@ function rollSubsystems(backgrounds) {
   return subsystems;
 }
 
+// Rolls d10 on an origin's weapon table; a 10 means no weapon from that roll. SRD p.9, p.12.
+function rollWeapon(originName) {
+  const roll = rollDie(10);
+  if (roll === 10) return null;
+  return WEAPONS[originName][roll - 1];
+}
+
+// Clothes + fixed coins by origin + two weapon rolls (own origin's table + a random table). SRD p.9.
+function rollEquipment(originName) {
+  const ownWeapon = rollWeapon(originName);
+  const anyOriginName = ORIGIN_NAMES[rollDie(ORIGIN_NAMES.length) - 1];
+  const anyWeapon = rollWeapon(anyOriginName);
+
+  return {
+    coins: STARTING_COINS[originName],
+    weapons: [ownWeapon, anyWeapon].filter(Boolean),
+  };
+}
+
 function generateCharacter() {
   const origin = rollOrigin();
   const backgrounds = pickBackgrounds(origin.name);
   const attributes = applyBackgroundBonuses(rollAttributes(), backgrounds);
   const subsystems = rollSubsystems(backgrounds);
+  const equipment = rollEquipment(origin.name);
 
   return {
     attributes,
     origin,
     backgrounds,
     subsystems,
+    equipment,
     hp: attributes.CON,
     doom: "d6",
   };

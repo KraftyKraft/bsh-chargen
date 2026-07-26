@@ -120,6 +120,51 @@ const BACKGROUNDS = {
   ],
 };
 
+// Starting coins by origin, per SRD p.9.
+const STARTING_COINS = {
+  Barbarian: 25,
+  Civilised: 50,
+  Decadent: 100,
+};
+
+// Weapon tables per origin, per SRD p.12. Roll d10: 1-9 map to the list, 10 = no weapon.
+// Two-handed weapons (marked * in the SRD) give Advantage on damage rolls (p.5).
+const WEAPONS = {
+  Barbarian: [
+    { name: "Bone bow", twoHanded: true },
+    { name: "Chakram", twoHanded: false },
+    { name: "Claymore", twoHanded: true },
+    { name: "Hunting knife", twoHanded: false },
+    { name: "Iwisa", twoHanded: false },
+    { name: "Spear", twoHanded: true },
+    { name: "Nomad scimitar", twoHanded: false },
+    { name: "Raider's great axe", twoHanded: true },
+    { name: "Warhammer", twoHanded: false },
+  ],
+  Civilised: [
+    { name: "Cestus", twoHanded: false },
+    { name: "Dagger", twoHanded: false },
+    { name: "Engraved longbow", twoHanded: true },
+    { name: "Executioner's cleaver", twoHanded: true },
+    { name: "Flail", twoHanded: false },
+    { name: "Katana", twoHanded: false },
+    { name: "Legion gladius", twoHanded: false },
+    { name: "Rapier", twoHanded: false },
+    { name: "Pilgrim's staff", twoHanded: true },
+  ],
+  Decadent: [
+    { name: "Blood metal sickle", twoHanded: false },
+    { name: "Crossbow", twoHanded: true },
+    { name: "Inquisitor's long sword", twoHanded: true },
+    { name: "Maul", twoHanded: false },
+    { name: "Razor whip", twoHanded: false },
+    { name: "Rusted harpoon", twoHanded: false },
+    { name: "Scythe", twoHanded: true },
+    { name: "Shiv", twoHanded: false },
+    { name: "Serrated sword", twoHanded: false },
+  ],
+};
+
 // Dark Pacts subsystems (SRD ch.6, p.14-21) unlocked by specific backgrounds.
 
 const DEMON_TYPES = [
