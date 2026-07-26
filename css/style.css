@@ -35,6 +35,22 @@ header p {
   margin: 0.25rem 0 0;
 }
 
+footer {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0 1.5rem 2rem;
+  text-align: center;
+}
+
+footer p {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+footer a {
+  color: var(--accent);
+}
+
 main {
   max-width: 640px;
   margin: 0 auto;
