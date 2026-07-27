@@ -1,6 +1,6 @@
 # BSH Character Generator
 
-A fast, one-click character generator for [Black Sword Hack: Ultimate Chaos Edition](https://blackswordhack.github.io/). Rolls attributes, origin, backgrounds, Dark Pacts subsystems, and starting equipment — all following the SRD rules.
+A fast, one-click character generator for [Black Sword Hack: Ultimate Chaos Edition](https://blackswordhack.github.io/). Rolls attributes, origin, backgrounds, Dark Pacts subsystems, and starting equipment, all following the SRD rules.
 
 **Live at:** https://kraftykraft.github.io/bsh-chargen/
 
@@ -10,7 +10,7 @@ Found a bug or have a feature idea? [Open an Issue](https://github.com/KraftyKra
 
 ## Tech
 
-Plain HTML/CSS/JS, no build step, no backend — hosted on GitHub Pages.
+Plain HTML/CSS/JS, no build step, no backend. Hosted on GitHub Pages.
 
 ## Credit
 
