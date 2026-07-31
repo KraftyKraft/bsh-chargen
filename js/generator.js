@@ -11,11 +11,14 @@ function rollAttributes() {
   return attributes;
 }
 
+function rollOriginStory(originName) {
+  const stories = ORIGINS[originName];
+  return stories[rollDie(stories.length) - 1];
+}
+
 function rollOrigin() {
   const name = ORIGIN_NAMES[rollDie(ORIGIN_NAMES.length) - 1];
-  const stories = ORIGINS[name];
-  const story = stories[rollDie(stories.length) - 1];
-  return { name, story };
+  return { name, story: rollOriginStory(name) };
 }
 
 // Removes and returns one random element from the array.
@@ -25,17 +28,45 @@ function takeRandom(list) {
 }
 
 // Two backgrounds tied to origin + one from any list; no two "unique" backgrounds. SRD p.8.
+// Each pick is tagged with slotType so a later edit knows which pool it must
+// stay within — origin-tied slots can only be swapped within that origin's
+// own list, the free slot can be swapped for anything (see eligibleBackgrounds).
 function pickBackgrounds(originName) {
   const originPool = [...BACKGROUNDS[originName]];
-  const chosen = [takeRandom(originPool), takeRandom(originPool)];
+  const chosen = [
+    { ...takeRandom(originPool), slotType: "origin" },
+    { ...takeRandom(originPool), slotType: "origin" },
+  ];
 
   const hasUnique = chosen.some((bg) => bg.unique);
   const anyPool = Object.values(BACKGROUNDS)
     .flat()
-    .filter((bg) => !chosen.includes(bg) && (!hasUnique || !bg.unique));
-  chosen.push(takeRandom(anyPool));
+    .filter((bg) => !chosen.some((c) => c.name === bg.name) && (!hasUnique || !bg.unique));
+  chosen.push({ ...takeRandom(anyPool), slotType: "free" });
 
   return chosen;
+}
+
+// Legal replacements for one background slot: an origin-tied slot may only
+// draw from that origin's own list; the free slot may draw from any origin.
+// Always excludes names already used in another slot, and unique backgrounds
+// if another slot already holds one (SRD p.8: "cannot take two... unique").
+function eligibleBackgrounds(originName, backgrounds, slotIndex) {
+  const slot = backgrounds[slotIndex];
+  const chosenNames = backgrounds.map((bg) => bg.name);
+  const hasUniqueElsewhere = backgrounds.some((bg, i) => i !== slotIndex && bg.unique);
+  const pool = slot.slotType === "origin" ? BACKGROUNDS[originName] : Object.values(BACKGROUNDS).flat();
+  return pool.filter(
+    (bg) => (bg.name === slot.name || !chosenNames.includes(bg.name)) && (!hasUniqueElsewhere || !bg.unique)
+  );
+}
+
+// True once an origin change leaves an origin-tied slot holding a background
+// that origin no longer offers. Flagged, not prevented — the player decides
+// whether to fix it.
+function isBackgroundIllegal(originName, backgroundSlot) {
+  if (backgroundSlot.slotType !== "origin") return false;
+  return !BACKGROUNDS[originName].some((bg) => bg.name === backgroundSlot.name);
 }
 
 function applyBackgroundBonuses(attributes, backgrounds) {
@@ -72,18 +103,44 @@ function rollDistinctSpells(count) {
   return chosen;
 }
 
+function rollSubsystem(config) {
+  const items = config.weighted
+    ? rollDistinctSpells(config.count)
+    : takeRandomDistinct(config.table, config.count);
+  return { label: config.label, items };
+}
+
 // Backgrounds like Warlock or Shaman unlock a Dark Pacts subsystem (SRD ch.6).
 function rollSubsystems(backgrounds) {
   const subsystems = [];
   for (const bg of backgrounds) {
     const config = SUBSYSTEMS_BY_BACKGROUND[bg.name];
     if (!config) continue;
-    const items = config.weighted
-      ? rollDistinctSpells(config.count)
-      : takeRandomDistinct(config.table, config.count);
-    subsystems.push({ label: config.label, items });
+    subsystems.push(rollSubsystem(config));
   }
   return subsystems;
+}
+
+// Re-derives subsystems after a background edit without re-rolling ones the
+// player already has and didn't touch: kept if their granting background is
+// still present, freshly rolled only for a newly-granted one, dropped if
+// their granting background is gone.
+function updateSubsystems(existingSubsystems, oldBackgrounds, newBackgrounds) {
+  const oldNames = new Set(oldBackgrounds.map((bg) => bg.name));
+  const newNames = new Set(newBackgrounds.map((bg) => bg.name));
+
+  const kept = existingSubsystems.filter((sub) => {
+    const grantingName = Object.keys(SUBSYSTEMS_BY_BACKGROUND).find(
+      (name) => SUBSYSTEMS_BY_BACKGROUND[name].label === sub.label
+    );
+    return newNames.has(grantingName);
+  });
+
+  const added = newBackgrounds
+    .filter((bg) => !oldNames.has(bg.name) && SUBSYSTEMS_BY_BACKGROUND[bg.name])
+    .map((bg) => rollSubsystem(SUBSYSTEMS_BY_BACKGROUND[bg.name]));
+
+  return [...kept, ...added];
 }
 
 // Rolls d10 on an origin's weapon table; a 10 means no weapon from that roll. SRD p.9, p.12.
@@ -121,12 +178,14 @@ function calculateDamage(backgrounds) {
 function generateCharacter() {
   const origin = rollOrigin();
   const backgrounds = pickBackgrounds(origin.name);
-  const attributes = applyBackgroundBonuses(rollAttributes(), backgrounds);
+  const baseAttributes = rollAttributes();
+  const attributes = applyBackgroundBonuses(baseAttributes, backgrounds);
   const subsystems = rollSubsystems(backgrounds);
   const equipment = rollEquipment(origin.name);
   const damage = calculateDamage(backgrounds);
 
   return {
+    baseAttributes,
     attributes,
     origin,
     backgrounds,
