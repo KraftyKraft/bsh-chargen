@@ -101,6 +101,33 @@ function renderCharacter(character) {
   `;
 }
 
+const STORAGE_KEY = "bsh-chargen-character";
+
+function saveCharacter(character) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(character));
+  } catch {
+    // Private browsing, full storage, etc. — losing persistence isn't
+    // worth breaking generation over.
+  }
+}
+
+function loadSavedCharacter() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
 document.getElementById("generate").addEventListener("click", () => {
-  renderCharacter(generateCharacter());
+  const character = generateCharacter();
+  renderCharacter(character);
+  saveCharacter(character);
 });
+
+const savedCharacter = loadSavedCharacter();
+if (savedCharacter) {
+  renderCharacter(savedCharacter);
+}
