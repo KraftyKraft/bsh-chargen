@@ -261,6 +261,10 @@ main {
   body {
     background: #fff;
     color: #111;
+    /* min-height: 100vh (screen-only, keeps the dark background filling a
+       short page) is ambiguous once paginating onto a fixed-size page and
+       has caused a spurious blank trailing page in some browsers. */
+    min-height: auto;
   }
 
   main {
