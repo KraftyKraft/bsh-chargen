@@ -52,14 +52,27 @@ function renderCharacter(character) {
     .map((bg) => effectBlock(bg.name, `+1 ${bg.bonus}`, bg.effect))
     .join("");
 
+  // Wrapped in .section (rather than left as flat siblings of .sheet) so print
+  // pagination keeps a whole group's label with its items — see break-inside
+  // in the print stylesheet.
+  const backgroundsSection = `
+    <div class="section">
+      <div class="sheet-row">
+        <span class="label">Backgrounds</span>
+      </div>
+      ${backgroundBlocks}
+    </div>`;
+
   // Only rendered when a background (e.g. Warlock, Shaman) unlocks a Dark Pacts subsystem.
   const subsystemBlocks = character.subsystems
     .map(
       (sub) => `
-      <div class="sheet-row">
-        <span class="label">${withGlossary(sub.label)}</span>
-      </div>
-      ${sub.items.map((item) => effectBlock(item.name, item.meta, item.effect)).join("")}`
+      <div class="section">
+        <div class="sheet-row">
+          <span class="label">${withGlossary(sub.label)}</span>
+        </div>
+        ${sub.items.map((item) => effectBlock(item.name, item.meta, item.effect)).join("")}
+      </div>`
     )
     .join("");
 
@@ -73,10 +86,7 @@ function renderCharacter(character) {
       <span class="label">Born...</span>
       <span class="value">${withGlossary(character.origin.story)}</span>
     </div>
-    <div class="sheet-row">
-      <span class="label">Backgrounds</span>
-    </div>
-    ${backgroundBlocks}
+    ${backgroundsSection}
     ${subsystemBlocks}
     <div class="sheet-row">
       <span class="label">Coins</span>
@@ -125,6 +135,10 @@ document.getElementById("generate").addEventListener("click", () => {
   const character = generateCharacter();
   renderCharacter(character);
   saveCharacter(character);
+});
+
+document.getElementById("print").addEventListener("click", () => {
+  window.print();
 });
 
 const savedCharacter = loadSavedCharacter();
