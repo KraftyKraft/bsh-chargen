@@ -43,6 +43,33 @@ function applyAttributeChange(statName, rawValue) {
   rerender();
 }
 
+// Only rerolls if the table actually changed — reselecting the table you're
+// already on (including via an idempotent outside-click close) leaves the
+// existing roll alone, same as origin/background edits, rather than silently
+// rerolling every time the edit UI is opened and closed. To reroll on the
+// same table on purpose, see rerollOwnWeapon/rerollChoiceWeapon below.
+function applyWeaponTableChange(newOriginName) {
+  if (newOriginName !== character.equipment.choiceOrigin) {
+    character.equipment.choiceOrigin = newOriginName;
+    character.equipment.choiceWeapon = rollWeapon(newOriginName);
+    saveCharacter(character);
+  }
+  editingTarget = null;
+  rerender();
+}
+
+function rerollOwnWeapon() {
+  character.equipment.ownWeapon = rollWeapon(character.origin.name);
+  saveCharacter(character);
+  rerender();
+}
+
+function rerollChoiceWeapon() {
+  character.equipment.choiceWeapon = rollWeapon(character.equipment.choiceOrigin);
+  saveCharacter(character);
+  rerender();
+}
+
 function applyBackgroundChange(index, newBackgroundName) {
   const picked = eligibleBackgrounds(character.origin.name, character.backgrounds, index).find(
     (bg) => bg.name === newBackgroundName
@@ -106,6 +133,28 @@ function attachEditHandlers() {
     };
   }
 
+  const rerollOwnBtn = document.getElementById("reroll-own-weapon-btn");
+  if (rerollOwnBtn) rerollOwnBtn.onclick = rerollOwnWeapon;
+
+  const rerollChoiceBtn = document.getElementById("reroll-choice-weapon-btn");
+  if (rerollChoiceBtn) rerollChoiceBtn.onclick = rerollChoiceWeapon;
+
+  const weaponTableBtn = document.getElementById("weapon-table-edit-btn");
+  if (weaponTableBtn) {
+    weaponTableBtn.onclick = () => {
+      editingTarget = { kind: "weaponTable" };
+      rerender();
+    };
+  }
+
+  const weaponTableSelect = document.getElementById("weapon-table-select");
+  if (weaponTableSelect) {
+    weaponTableSelect.onchange = (e) => applyWeaponTableChange(e.target.value);
+    weaponTableSelect.onblur = () => {
+      if (editingTarget?.kind === "weaponTable") applyWeaponTableChange(weaponTableSelect.value);
+    };
+  }
+
   document.querySelectorAll("[data-bg-edit]").forEach((btn) => {
     btn.onclick = () => {
       editingTarget = { kind: "background", index: Number(btn.dataset.bgEdit) };
@@ -140,6 +189,8 @@ document.addEventListener("click", (e) => {
   } else if (editingTarget.kind === "attribute") {
     const input = document.querySelector(`[data-attr-select="${editingTarget.name}"]`);
     applyAttributeChange(editingTarget.name, input.value);
+  } else if (editingTarget.kind === "weaponTable") {
+    applyWeaponTableChange(document.getElementById("weapon-table-select").value);
   } else {
     const select = document.querySelector(`[data-bg-select="${editingTarget.index}"]`);
     applyBackgroundChange(editingTarget.index, select.value);

@@ -145,6 +145,20 @@ main {
   text-align: right;
 }
 
+@media (max-width: 480px) {
+  /* At full width the label/value split leaves too little room for the
+     value column once it holds wrapping text plus two buttons (e.g. the
+     choice-weapon row) — stack them instead, same as .background-block. */
+  .sheet-row {
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .sheet-row .value {
+    text-align: left;
+  }
+}
+
 .background-block {
   padding: 0.6rem 0;
 }
