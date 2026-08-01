@@ -40,6 +40,27 @@ function equipmentText(equipment) {
   return `A set of clothes, ${weaponNames.join(", ")}.`;
 }
 
+// Renders one attribute box as either its static score (with a button to
+// start editing) or, while editingTarget targets it, a plain number input.
+// Unlike backgrounds there's no legality concept here — any whole number is
+// accepted, by design (see applyAttributeChange for how it stays consistent
+// with background bonuses).
+function attributeBox(character, editingTarget, name) {
+  const score = character.attributes[name];
+  if (editingTarget?.kind === "attribute" && editingTarget.name === name) {
+    return `
+      <div class="attribute">
+        <span class="name">${name}</span>
+        <input type="number" step="1" class="edit-select attr-input" data-attr-select="${name}" value="${score}">
+      </div>`;
+  }
+  return `
+      <div class="attribute">
+        <span class="name">${name}</span>
+        <span class="score">${score}<button class="edit-btn" data-attr-edit="${name}" aria-label="Change ${name}">&#9998;</button></span>
+      </div>`;
+}
+
 // Renders the Origin row as either its static value (with a button to start
 // editing) or, while editingTarget targets it, a <select> of every origin.
 function originRow(character, editingTarget) {
@@ -95,14 +116,8 @@ function backgroundBlock(character, editingTarget, index) {
 function renderCharacter(character, editingTarget = null) {
   const sheet = document.getElementById("sheet");
 
-  const attrRows = Object.entries(character.attributes)
-    .map(
-      ([name, score]) => `
-      <div class="attribute">
-        <span class="name">${name}</span>
-        <span class="score">${score}</span>
-      </div>`
-    )
+  const attrRows = Object.keys(character.attributes)
+    .map((name) => attributeBox(character, editingTarget, name))
     .join("");
 
   const backgroundBlocks = character.backgrounds

@@ -20,6 +20,29 @@ function applyOriginChange(newOriginName) {
   saveCharacter(character);
 }
 
+// Edits the displayed (final, post-bonus) score rather than the base roll,
+// since that's what's actually on screen — then solves backward for what
+// baseAttributes must be so a later background swap still reapplies bonuses
+// correctly on top, instead of the edit silently drifting out of sync.
+function applyAttributeChange(statName, rawValue) {
+  // A number input silently sanitizes unparseable text to "" rather than
+  // rejecting it, and Number("") is 0, not NaN — so "" must be checked for
+  // explicitly, or garbage input would quietly apply as a score of 0. Empty
+  // or otherwise invalid input is treated as a cancel: closes and reverts
+  // to the unedited value, rather than applying anything or getting stuck.
+  const newScore = Math.round(Number(rawValue));
+  if (rawValue !== "" && Number.isFinite(newScore)) {
+    const currentBonus = character.backgrounds.filter((bg) => bg.bonus === statName).length;
+    character.baseAttributes[statName] = newScore - currentBonus;
+    character.attributes = applyBackgroundBonuses(character.baseAttributes, character.backgrounds);
+    character.hp = character.attributes.CON;
+    saveCharacter(character);
+  }
+
+  editingTarget = null;
+  rerender();
+}
+
 function applyBackgroundChange(index, newBackgroundName) {
   const picked = eligibleBackgrounds(character.origin.name, character.backgrounds, index).find(
     (bg) => bg.name === newBackgroundName
@@ -43,6 +66,24 @@ function applyBackgroundChange(index, newBackgroundName) {
 // innerHTML replacement drops all prior listeners each render, so this runs
 // after every renderCharacter() call to rewire whatever's currently on screen.
 function attachEditHandlers() {
+  document.querySelectorAll("[data-attr-edit]").forEach((btn) => {
+    btn.onclick = () => {
+      editingTarget = { kind: "attribute", name: btn.dataset.attrEdit };
+      rerender();
+    };
+  });
+
+  document.querySelectorAll("[data-attr-select]").forEach((input) => {
+    const name = input.dataset.attrSelect;
+    input.onchange = (e) => applyAttributeChange(name, e.target.value);
+    // Same reselect/re-enter-same-value case as the background selects below.
+    input.onblur = () => {
+      if (editingTarget?.kind === "attribute" && editingTarget.name === name) {
+        applyAttributeChange(name, input.value);
+      }
+    };
+  });
+
   const originBtn = document.getElementById("origin-edit-btn");
   if (originBtn) {
     originBtn.onclick = () => {
@@ -96,6 +137,9 @@ document.addEventListener("click", (e) => {
   if (e.target.closest(".edit-select") || e.target.closest(".edit-btn")) return;
   if (editingTarget.kind === "origin") {
     applyOriginChange(document.getElementById("origin-select").value);
+  } else if (editingTarget.kind === "attribute") {
+    const input = document.querySelector(`[data-attr-select="${editingTarget.name}"]`);
+    applyAttributeChange(editingTarget.name, input.value);
   } else {
     const select = document.querySelector(`[data-bg-select="${editingTarget.index}"]`);
     applyBackgroundChange(editingTarget.index, select.value);

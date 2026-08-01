@@ -193,6 +193,19 @@ main {
   font-size: 1.4rem;
 }
 
+.attr-input {
+  width: 100%;
+  text-align: center;
+  font-size: 1.4rem;
+  -moz-appearance: textfield;
+}
+
+.attr-input::-webkit-outer-spin-button,
+.attr-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 .placeholder {
   color: var(--muted);
   text-align: center;
