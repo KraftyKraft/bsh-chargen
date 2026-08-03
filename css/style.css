@@ -198,13 +198,33 @@ main {
 .attribute .name {
   display: block;
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.85rem;
+  margin-bottom: 0.3rem;
   text-transform: uppercase;
 }
 
 .attribute .score {
   display: block;
   font-size: 1.4rem;
+}
+
+@media (max-width: 480px) {
+  /* Three narrow columns left too little room once the edit button grew —
+     two wider columns (6 attributes fits evenly into 3 rows of 2) give the
+     name label and the score+button row enough space to stop overlapping. */
+  .attributes {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .attribute {
+    padding: 0.75rem;
+  }
+
+  .attribute .name {
+    font-size: 0.95rem;
+    margin-bottom: 0.4rem;
+  }
 }
 
 .attr-input {
@@ -230,15 +250,15 @@ main {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.1rem;
-  height: 1.1rem;
-  margin-left: 0.35rem;
+  width: 1.4rem;
+  height: 1.4rem;
+  margin-left: 0.5rem;
   border: 1px solid var(--border);
   border-radius: 4px;
   background: transparent;
   color: var(--muted);
   font-family: inherit;
-  font-size: 0.7rem;
+  font-size: 0.85rem;
   line-height: 1;
   cursor: pointer;
   vertical-align: middle;
@@ -247,6 +267,18 @@ main {
 .edit-btn:hover {
   border-color: var(--accent);
   color: var(--accent);
+}
+
+@media (max-width: 480px) {
+  /* Fingers need a bigger, better-separated target than a mouse pointer
+     does — bump both size and spacing further than the desktop bump above,
+     so adjacent buttons (e.g. reroll next to edit) don't invite a mis-tap. */
+  .edit-btn {
+    width: 2.1rem;
+    height: 2.1rem;
+    margin-left: 0.6rem;
+    font-size: 1.05rem;
+  }
 }
 
 .illegal-badge {
