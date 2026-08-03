@@ -70,6 +70,40 @@ function rerollChoiceWeapon() {
   rerender();
 }
 
+// Rerolls one subsystem item slot, respecting the same distinctness rule as
+// the original roll (no two items in one subsystem share a name). Spells are
+// rerolled through the actual weighted d100 table (rollSpell, with a retry
+// on collision) so a reroll doesn't quietly flatten the SRD's odds to
+// uniform — the other four subsystem tables were already uniform picks.
+function rerollSubsystemItem(subsystemIndex, itemIndex) {
+  const subsystem = character.subsystems[subsystemIndex];
+  const config = subsystemConfigFor(subsystem.label);
+  const otherNames = subsystem.items.filter((_, i) => i !== itemIndex).map((item) => item.name);
+
+  let picked;
+  if (config.weighted) {
+    do {
+      picked = rollSpell();
+    } while (otherNames.includes(picked.name));
+  } else {
+    const pool = eligibleSubsystemItems(subsystem, itemIndex);
+    picked = pool[rollDie(pool.length) - 1];
+  }
+
+  subsystem.items[itemIndex] = picked;
+  saveCharacter(character);
+  rerender();
+}
+
+function applySubsystemItemChange(subsystemIndex, itemIndex, newItemName) {
+  const subsystem = character.subsystems[subsystemIndex];
+  const picked = eligibleSubsystemItems(subsystem, itemIndex).find((entry) => entry.name === newItemName);
+  if (picked) subsystem.items[itemIndex] = picked;
+  editingTarget = null;
+  rerender();
+  saveCharacter(character);
+}
+
 function applyBackgroundChange(index, newBackgroundName) {
   const picked = eligibleBackgrounds(character.origin.name, character.backgrounds, index).find(
     (bg) => bg.name === newBackgroundName
@@ -172,6 +206,37 @@ function attachEditHandlers() {
       }
     };
   });
+
+  document.querySelectorAll("[data-subsystem-reroll]").forEach((btn) => {
+    const subsystemIndex = Number(btn.dataset.subsystemIndex);
+    const itemIndex = Number(btn.dataset.itemIndex);
+    btn.onclick = () => rerollSubsystemItem(subsystemIndex, itemIndex);
+  });
+
+  document.querySelectorAll("[data-subsystem-edit]").forEach((btn) => {
+    const subsystemIndex = Number(btn.dataset.subsystemIndex);
+    const itemIndex = Number(btn.dataset.itemIndex);
+    btn.onclick = () => {
+      editingTarget = { kind: "subsystemItem", subsystemIndex, itemIndex };
+      rerender();
+    };
+  });
+
+  document.querySelectorAll("[data-subsystem-select]").forEach((select) => {
+    const subsystemIndex = Number(select.dataset.subsystemIndex);
+    const itemIndex = Number(select.dataset.itemIndex);
+    select.onchange = (e) => applySubsystemItemChange(subsystemIndex, itemIndex, e.target.value);
+    // Same reselect-same-value case as the origin/background selects above.
+    select.onblur = () => {
+      if (
+        editingTarget?.kind === "subsystemItem" &&
+        editingTarget.subsystemIndex === subsystemIndex &&
+        editingTarget.itemIndex === itemIndex
+      ) {
+        applySubsystemItemChange(subsystemIndex, itemIndex, select.value);
+      }
+    };
+  });
 }
 
 // Reselecting the currently-active option fires neither change nor blur
@@ -191,6 +256,11 @@ document.addEventListener("click", (e) => {
     applyAttributeChange(editingTarget.name, input.value);
   } else if (editingTarget.kind === "weaponTable") {
     applyWeaponTableChange(document.getElementById("weapon-table-select").value);
+  } else if (editingTarget.kind === "subsystemItem") {
+    const select = document.querySelector(
+      `[data-subsystem-select][data-subsystem-index="${editingTarget.subsystemIndex}"][data-item-index="${editingTarget.itemIndex}"]`
+    );
+    applySubsystemItemChange(editingTarget.subsystemIndex, editingTarget.itemIndex, select.value);
   } else {
     const select = document.querySelector(`[data-bg-select="${editingTarget.index}"]`);
     applyBackgroundChange(editingTarget.index, select.value);

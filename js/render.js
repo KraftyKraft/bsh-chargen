@@ -24,11 +24,32 @@ function withGlossary(text) {
   });
 }
 
-function effectBlock(name, meta, effect) {
+// Renders one subsystem item slot as its static effect block (with reroll
+// and edit buttons) or, while editingTarget targets it, a <select> of every
+// legal replacement (see eligibleSubsystemItems — same distinctness rule as
+// the original roll: no two items in one subsystem may share a name).
+function subsystemItemBlock(character, editingTarget, subsystemIndex, itemIndex) {
+  const subsystem = character.subsystems[subsystemIndex];
+  const item = subsystem.items[itemIndex];
+  const editing =
+    editingTarget?.kind === "subsystemItem" &&
+    editingTarget.subsystemIndex === subsystemIndex &&
+    editingTarget.itemIndex === itemIndex;
+
+  if (editing) {
+    const options = eligibleSubsystemItems(subsystem, itemIndex)
+      .map((opt) => `<option value="${opt.name}" ${opt.name === item.name ? "selected" : ""}>${opt.name}</option>`)
+      .join("");
+    return `
+    <div class="background-block">
+      <select class="edit-select" data-subsystem-select data-subsystem-index="${subsystemIndex}" data-item-index="${itemIndex}">${options}</select>
+    </div>`;
+  }
+
   return `
     <div class="background-block">
-      <span class="background-name">${withGlossary(name)}${meta ? ` <span class="bonus">(${withGlossary(meta)})</span>` : ""}</span>
-      <span class="background-effect">${withGlossary(effect)}</span>
+      <span class="background-name">${withGlossary(item.name)}${item.meta ? ` <span class="bonus">(${withGlossary(item.meta)})</span>` : ""}<button class="edit-btn" data-subsystem-reroll data-subsystem-index="${subsystemIndex}" data-item-index="${itemIndex}" aria-label="Reroll ${item.name}">&#8635;</button><button class="edit-btn" data-subsystem-edit data-subsystem-index="${subsystemIndex}" data-item-index="${itemIndex}" aria-label="Change ${item.name}">&#9998;</button></span>
+      <span class="background-effect">${withGlossary(item.effect)}</span>
     </div>`;
 }
 
@@ -172,12 +193,14 @@ function renderCharacter(character, editingTarget = null) {
   // Only rendered when a background (e.g. Warlock, Shaman) unlocks a Dark Pacts subsystem.
   const subsystemBlocks = character.subsystems
     .map(
-      (sub) => `
+      (sub, subsystemIndex) => `
       <div class="section">
         <div class="sheet-row">
           <span class="label">${withGlossary(sub.label)}</span>
         </div>
-        ${sub.items.map((item) => effectBlock(item.name, item.meta, item.effect)).join("")}
+        ${sub.items
+          .map((_, itemIndex) => subsystemItemBlock(character, editingTarget, subsystemIndex, itemIndex))
+          .join("")}
       </div>`
     )
     .join("");

@@ -25,6 +25,28 @@ function isBackgroundIllegal(originName, backgroundSlot) {
   return !BACKGROUNDS[originName].some((bg) => bg.name === backgroundSlot.name);
 }
 
+// A subsystem only stores its label, not which background granted it — this
+// looks that background back up from SUBSYSTEMS_BY_BACKGROUND, shared by
+// updateSubsystems (below) and the item-editing helpers.
+function grantingBackgroundName(subsystemLabel) {
+  return Object.keys(SUBSYSTEMS_BY_BACKGROUND).find(
+    (name) => SUBSYSTEMS_BY_BACKGROUND[name].label === subsystemLabel
+  );
+}
+
+function subsystemConfigFor(subsystemLabel) {
+  return SUBSYSTEMS_BY_BACKGROUND[grantingBackgroundName(subsystemLabel)];
+}
+
+// Legal replacements for one subsystem item slot: the subsystem's full
+// table, minus whatever the *other* slots already hold — items within one
+// subsystem must stay distinct, same rule the original roll enforces (see
+// rollSubsystem/takeRandomDistinct/rollDistinctSpells in generator.js).
+function eligibleSubsystemItems(subsystem, itemIndex) {
+  const otherNames = subsystem.items.filter((_, i) => i !== itemIndex).map((item) => item.name);
+  return subsystemConfigFor(subsystem.label).table.filter((entry) => !otherNames.includes(entry.name));
+}
+
 // Re-derives subsystems after a background edit without re-rolling ones the
 // player already has and didn't touch: kept if their granting background is
 // still present, freshly rolled only for a newly-granted one, dropped if
@@ -33,12 +55,7 @@ function updateSubsystems(existingSubsystems, oldBackgrounds, newBackgrounds) {
   const oldNames = new Set(oldBackgrounds.map((bg) => bg.name));
   const newNames = new Set(newBackgrounds.map((bg) => bg.name));
 
-  const kept = existingSubsystems.filter((sub) => {
-    const grantingName = Object.keys(SUBSYSTEMS_BY_BACKGROUND).find(
-      (name) => SUBSYSTEMS_BY_BACKGROUND[name].label === sub.label
-    );
-    return newNames.has(grantingName);
-  });
+  const kept = existingSubsystems.filter((sub) => newNames.has(grantingBackgroundName(sub.label)));
 
   const added = newBackgrounds
     .filter((bg) => !oldNames.has(bg.name) && SUBSYSTEMS_BY_BACKGROUND[bg.name])
