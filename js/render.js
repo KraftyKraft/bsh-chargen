@@ -132,7 +132,7 @@ function originRow(character, editingTarget) {
   return `
     <div class="sheet-row">
       <span class="label">Origin</span>
-      <span class="value">${character.origin.name}<button class="edit-btn" id="origin-edit-btn" aria-label="Change origin">&#9998;</button></span>
+      <span class="value">${character.origin.name}<button class="edit-btn" id="reroll-origin-btn" aria-label="Reroll origin">&#8635;</button><button class="edit-btn" id="origin-edit-btn" aria-label="Change origin">&#9998;</button></span>
     </div>`;
 }
 
@@ -163,7 +163,7 @@ function backgroundBlock(character, editingTarget, index) {
 
   return `
     <div class="background-block">
-      <span class="background-name">${withGlossary(bg.name)} <span class="bonus">(+1 ${withGlossary(bg.bonus)}${uniqueSuffix})</span> ${illegalBadge}<button class="edit-btn" data-bg-edit="${index}" aria-label="Change ${bg.name}">&#9998;</button></span>
+      <span class="background-name">${withGlossary(bg.name)} <span class="bonus">(+1 ${withGlossary(bg.bonus)}${uniqueSuffix})</span> ${illegalBadge}<button class="edit-btn" data-bg-reroll="${index}" aria-label="Reroll ${bg.name}">&#8635;</button><button class="edit-btn" data-bg-edit="${index}" aria-label="Change ${bg.name}">&#9998;</button></span>
       <span class="background-effect">${withGlossary(bg.effect)}</span>
     </div>`;
 }
@@ -210,7 +210,7 @@ function renderCharacter(character, editingTarget = null) {
     ${originRow(character, editingTarget)}
     <div class="sheet-row">
       <span class="label">Born...</span>
-      <span class="value">${withGlossary(character.origin.story)}</span>
+      <span class="value">${withGlossary(character.origin.story)}<button class="edit-btn" id="reroll-origin-story-btn" aria-label="Reroll origin story">&#8635;</button></span>
     </div>
     ${backgroundsSection}
     ${subsystemBlocks}

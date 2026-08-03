@@ -12,12 +12,40 @@ function rerender() {
   if (character) renderCharacter(character, editingTarget);
 }
 
-function applyOriginChange(newOriginName) {
+function setOrigin(newOriginName) {
   character.origin = { name: newOriginName, story: rollOriginStory(newOriginName) };
   character.equipment.coins = STARTING_COINS[newOriginName];
+}
+
+function applyOriginChange(newOriginName) {
+  setOrigin(newOriginName);
   editingTarget = null;
   rerender();
   saveCharacter(character);
+}
+
+// A full origin reroll also rerolls the origin-tied weapon: that weapon's
+// table is defined entirely by the origin, so after a reroll it'd otherwise
+// sit on a table that isn't even the current origin anymore, with no
+// "Illegal" flag (unlike backgrounds) to ever catch it. A dropdown *pick*
+// deliberately leaves equipment alone (see applyOriginChange/setOrigin) —
+// reroll and pick are different intents: reroll means "start this over."
+function rerollOrigin() {
+  const newOriginName = ORIGIN_NAMES[rollDie(ORIGIN_NAMES.length) - 1];
+  setOrigin(newOriginName);
+  character.equipment.ownWeapon = rollWeapon(newOriginName);
+  editingTarget = null;
+  rerender();
+  saveCharacter(character);
+}
+
+// Rerolls only the flavor story, independent of origin — same relationship
+// as the origin-table weapon roll: tied to the current origin, no separate
+// pick UI of its own.
+function rerollOriginStory() {
+  character.origin = { ...character.origin, story: rollOriginStory(character.origin.name) };
+  saveCharacter(character);
+  rerender();
 }
 
 // Edits the displayed (final, post-bonus) score rather than the base roll,
@@ -124,6 +152,15 @@ function applyBackgroundChange(index, newBackgroundName) {
   saveCharacter(character);
 }
 
+// A background reroll is applyBackgroundChange with a random pick from the
+// same eligible pool the dropdown offers — same origin-tied/free and
+// distinctness rules, including "fixing" a currently-Illegal slot by landing
+// on a legal pick, since the illegal name is never in that pool.
+function rerollBackground(index) {
+  const pool = eligibleBackgrounds(character.origin.name, character.backgrounds, index);
+  applyBackgroundChange(index, pool[rollDie(pool.length) - 1].name);
+}
+
 // innerHTML replacement drops all prior listeners each render, so this runs
 // after every renderCharacter() call to rewire whatever's currently on screen.
 function attachEditHandlers() {
@@ -152,6 +189,12 @@ function attachEditHandlers() {
       rerender();
     };
   }
+
+  const rerollOriginBtn = document.getElementById("reroll-origin-btn");
+  if (rerollOriginBtn) rerollOriginBtn.onclick = rerollOrigin;
+
+  const rerollOriginStoryBtn = document.getElementById("reroll-origin-story-btn");
+  if (rerollOriginStoryBtn) rerollOriginStoryBtn.onclick = rerollOriginStory;
 
   const originSelect = document.getElementById("origin-select");
   if (originSelect) {
@@ -188,6 +231,11 @@ function attachEditHandlers() {
       if (editingTarget?.kind === "weaponTable") applyWeaponTableChange(weaponTableSelect.value);
     };
   }
+
+  document.querySelectorAll("[data-bg-reroll]").forEach((btn) => {
+    const index = Number(btn.dataset.bgReroll);
+    btn.onclick = () => rerollBackground(index);
+  });
 
   document.querySelectorAll("[data-bg-edit]").forEach((btn) => {
     btn.onclick = () => {
