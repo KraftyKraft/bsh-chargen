@@ -58,40 +58,58 @@ function weaponLabel(weapon) {
   return weapon.name + (weapon.twoHanded ? " (two-handed)" : "");
 }
 
-// Renders the origin-table weapon roll: its result plus a reroll button. The
-// table itself isn't editable here (SRD ties it to your origin) — only which
-// result you got on it, unlike the choice-table roll below.
-function ownWeaponRow(character) {
-  return `
-    <div class="sheet-row">
-      <span class="label">Weapon <span class="bonus">(origin)</span></span>
-      <span class="value">${weaponLabel(character.equipment.ownWeapon)}<button class="edit-btn" id="reroll-own-weapon-btn" aria-label="Reroll origin weapon">&#8635;</button></span>
-    </div>`;
+// A "No weapon" sentinel (empty value, since no real weapon name is empty)
+// plus one <option> per entry in `pool` — shared by both weapon dropdowns
+// below, just with a different pool (one origin's table vs. every table).
+function weaponOptions(pool, selected) {
+  const none = `<option value="" ${selected ? "" : "selected"}>No weapon</option>`;
+  const options = pool
+    .map((w) => `<option value="${w.name}" ${w.name === selected ? "selected" : ""}>${weaponLabel(w)}</option>`)
+    .join("");
+  return none + options;
 }
 
-// Renders the "table of your choice" weapon roll (SRD p.9/29): its result
-// with a reroll button (stays on the same table) and an edit button to pick
-// a different table — or, while editingTarget targets it, a <select> of
-// every origin's table. Unlike backgrounds there's no illegal state here —
-// any table is always a legal choice.
-function choiceWeaponRow(character, editingTarget) {
-  const { choiceOrigin, choiceWeapon } = character.equipment;
+// Renders the origin-table weapon roll: its result with a reroll button and
+// an edit button to pick the exact weapon from your origin's table — or,
+// while editingTarget targets it, a <select> of that table (SRD p.9/12).
+function ownWeaponRow(character, editingTarget) {
+  const weapon = character.equipment.ownWeapon;
 
-  if (editingTarget?.kind === "weaponTable") {
-    const options = ORIGIN_NAMES.map(
-      (name) => `<option value="${name}" ${name === choiceOrigin ? "selected" : ""}>${name}</option>`
-    ).join("");
+  if (editingTarget?.kind === "ownWeapon") {
     return `
     <div class="sheet-row">
-      <span class="label">Weapon <span class="bonus">(choice)</span></span>
-      <select class="edit-select" id="weapon-table-select">${options}</select>
+      <span class="label">Weapon <span class="bonus">(origin)</span></span>
+      <select class="edit-select" id="own-weapon-select">${weaponOptions(WEAPONS[character.origin.name], weapon?.name)}</select>
     </div>`;
   }
 
   return `
     <div class="sheet-row">
-      <span class="label">Weapon <span class="bonus">(choice, ${choiceOrigin})</span></span>
-      <span class="value">${weaponLabel(choiceWeapon)}<button class="edit-btn" id="reroll-choice-weapon-btn" aria-label="Reroll choice weapon">&#8635;</button><button class="edit-btn" id="weapon-table-edit-btn" aria-label="Change choice weapon's table">&#9998;</button></span>
+      <span class="label">Weapon <span class="bonus">(origin)</span></span>
+      <span class="value">${weaponLabel(weapon)}<button class="edit-btn" id="reroll-own-weapon-btn" aria-label="Reroll origin weapon">&#8635;</button><button class="edit-btn" id="own-weapon-edit-btn" aria-label="Change origin weapon">&#9998;</button></span>
+    </div>`;
+}
+
+// Renders the "table of your choice" weapon roll (SRD p.9/29): its result
+// with a reroll button and an edit button to pick the exact weapon from
+// every origin's table combined — one step further than the SRD's "pick a
+// table," letting the player pick the weapon itself directly. Unlike
+// backgrounds there's no illegal state here — any weapon is always legal.
+function choiceWeaponRow(character, editingTarget) {
+  const weapon = character.equipment.choiceWeapon;
+
+  if (editingTarget?.kind === "choiceWeapon") {
+    return `
+    <div class="sheet-row">
+      <span class="label">Weapon <span class="bonus">(choice)</span></span>
+      <select class="edit-select" id="choice-weapon-select">${weaponOptions(ALL_WEAPONS, weapon?.name)}</select>
+    </div>`;
+  }
+
+  return `
+    <div class="sheet-row">
+      <span class="label">Weapon <span class="bonus">(choice)</span></span>
+      <span class="value">${weaponLabel(weapon)}<button class="edit-btn" id="reroll-choice-weapon-btn" aria-label="Reroll choice weapon">&#8635;</button><button class="edit-btn" id="choice-weapon-edit-btn" aria-label="Change choice weapon">&#9998;</button></span>
     </div>`;
 }
 
@@ -222,7 +240,7 @@ function renderCharacter(character, editingTarget = null) {
       <span class="label">Equipment</span>
       <span class="value">A set of clothes.</span>
     </div>
-    ${ownWeaponRow(character)}
+    ${ownWeaponRow(character, editingTarget)}
     ${choiceWeaponRow(character, editingTarget)}
     <div class="sheet-row">
       <span class="label">Damage</span>

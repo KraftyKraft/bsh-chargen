@@ -169,6 +169,12 @@ const WEAPONS = {
   ],
 };
 
+// Every weapon across all three origin tables, for the choice-weapon
+// dropdown (SRD p.9/29: the second weapon roll is "on the table of your
+// choice" — letting the player pick the exact weapon directly, rather than
+// just which table to roll on, is one step further in the same direction).
+const ALL_WEAPONS = Object.values(WEAPONS).flat();
+
 // Dark Pacts subsystems (SRD ch.6, p.14-21) unlocked by specific backgrounds.
 
 const DEMON_TYPES = [

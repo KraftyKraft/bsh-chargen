@@ -12,9 +12,14 @@ function rerender() {
   if (character) renderCharacter(character, editingTarget);
 }
 
+// The origin-tied weapon's table is defined entirely by the origin, so any
+// origin change — pick or reroll alike — rerolls it too; left alone, it'd
+// otherwise silently sit on a table that isn't even the current origin
+// anymore, with no "Illegal" flag (unlike backgrounds) to ever catch it.
 function setOrigin(newOriginName) {
   character.origin = { name: newOriginName, story: rollOriginStory(newOriginName) };
   character.equipment.coins = STARTING_COINS[newOriginName];
+  character.equipment.ownWeapon = rollWeapon(newOriginName);
 }
 
 function applyOriginChange(newOriginName) {
@@ -24,19 +29,8 @@ function applyOriginChange(newOriginName) {
   saveCharacter(character);
 }
 
-// A full origin reroll also rerolls the origin-tied weapon: that weapon's
-// table is defined entirely by the origin, so after a reroll it'd otherwise
-// sit on a table that isn't even the current origin anymore, with no
-// "Illegal" flag (unlike backgrounds) to ever catch it. A dropdown *pick*
-// deliberately leaves equipment alone (see applyOriginChange/setOrigin) —
-// reroll and pick are different intents: reroll means "start this over."
 function rerollOrigin() {
-  const newOriginName = ORIGIN_NAMES[rollDie(ORIGIN_NAMES.length) - 1];
-  setOrigin(newOriginName);
-  character.equipment.ownWeapon = rollWeapon(newOriginName);
-  editingTarget = null;
-  rerender();
-  saveCharacter(character);
+  applyOriginChange(ORIGIN_NAMES[rollDie(ORIGIN_NAMES.length) - 1]);
 }
 
 // Rerolls only the flavor story, independent of origin — same relationship
@@ -71,19 +65,20 @@ function applyAttributeChange(statName, rawValue) {
   rerender();
 }
 
-// Only rerolls if the table actually changed — reselecting the table you're
-// already on (including via an idempotent outside-click close) leaves the
-// existing roll alone, same as origin/background edits, rather than silently
-// rerolling every time the edit UI is opened and closed. To reroll on the
-// same table on purpose, see rerollOwnWeapon/rerollChoiceWeapon below.
-function applyWeaponTableChange(newOriginName) {
-  if (newOriginName !== character.equipment.choiceOrigin) {
-    character.equipment.choiceOrigin = newOriginName;
-    character.equipment.choiceWeapon = rollWeapon(newOriginName);
-    saveCharacter(character);
-  }
+// weaponName is "" for the "No weapon" option — find() then yields undefined,
+// which the ?? null normalizes to the same null the random rolls use.
+function applyOwnWeaponChange(weaponName) {
+  character.equipment.ownWeapon = WEAPONS[character.origin.name].find((w) => w.name === weaponName) ?? null;
   editingTarget = null;
   rerender();
+  saveCharacter(character);
+}
+
+function applyChoiceWeaponChange(weaponName) {
+  character.equipment.choiceWeapon = ALL_WEAPONS.find((w) => w.name === weaponName) ?? null;
+  editingTarget = null;
+  rerender();
+  saveCharacter(character);
 }
 
 function rerollOwnWeapon() {
@@ -92,8 +87,12 @@ function rerollOwnWeapon() {
   rerender();
 }
 
+// Uniform over every weapon plus one "no weapon" outcome — matching the
+// dropdown's full-table-combined scope, now that the choice slot isn't tied
+// to a single stored table anymore.
 function rerollChoiceWeapon() {
-  character.equipment.choiceWeapon = rollWeapon(character.equipment.choiceOrigin);
+  const pool = [...ALL_WEAPONS, null];
+  character.equipment.choiceWeapon = pool[rollDie(pool.length) - 1];
   saveCharacter(character);
   rerender();
 }
@@ -213,22 +212,38 @@ function attachEditHandlers() {
   const rerollOwnBtn = document.getElementById("reroll-own-weapon-btn");
   if (rerollOwnBtn) rerollOwnBtn.onclick = rerollOwnWeapon;
 
-  const rerollChoiceBtn = document.getElementById("reroll-choice-weapon-btn");
-  if (rerollChoiceBtn) rerollChoiceBtn.onclick = rerollChoiceWeapon;
-
-  const weaponTableBtn = document.getElementById("weapon-table-edit-btn");
-  if (weaponTableBtn) {
-    weaponTableBtn.onclick = () => {
-      editingTarget = { kind: "weaponTable" };
+  const ownWeaponBtn = document.getElementById("own-weapon-edit-btn");
+  if (ownWeaponBtn) {
+    ownWeaponBtn.onclick = () => {
+      editingTarget = { kind: "ownWeapon" };
       rerender();
     };
   }
 
-  const weaponTableSelect = document.getElementById("weapon-table-select");
-  if (weaponTableSelect) {
-    weaponTableSelect.onchange = (e) => applyWeaponTableChange(e.target.value);
-    weaponTableSelect.onblur = () => {
-      if (editingTarget?.kind === "weaponTable") applyWeaponTableChange(weaponTableSelect.value);
+  const ownWeaponSelect = document.getElementById("own-weapon-select");
+  if (ownWeaponSelect) {
+    ownWeaponSelect.onchange = (e) => applyOwnWeaponChange(e.target.value);
+    ownWeaponSelect.onblur = () => {
+      if (editingTarget?.kind === "ownWeapon") applyOwnWeaponChange(ownWeaponSelect.value);
+    };
+  }
+
+  const rerollChoiceBtn = document.getElementById("reroll-choice-weapon-btn");
+  if (rerollChoiceBtn) rerollChoiceBtn.onclick = rerollChoiceWeapon;
+
+  const choiceWeaponBtn = document.getElementById("choice-weapon-edit-btn");
+  if (choiceWeaponBtn) {
+    choiceWeaponBtn.onclick = () => {
+      editingTarget = { kind: "choiceWeapon" };
+      rerender();
+    };
+  }
+
+  const choiceWeaponSelect = document.getElementById("choice-weapon-select");
+  if (choiceWeaponSelect) {
+    choiceWeaponSelect.onchange = (e) => applyChoiceWeaponChange(e.target.value);
+    choiceWeaponSelect.onblur = () => {
+      if (editingTarget?.kind === "choiceWeapon") applyChoiceWeaponChange(choiceWeaponSelect.value);
     };
   }
 
@@ -302,8 +317,10 @@ document.addEventListener("click", (e) => {
   } else if (editingTarget.kind === "attribute") {
     const input = document.querySelector(`[data-attr-select="${editingTarget.name}"]`);
     applyAttributeChange(editingTarget.name, input.value);
-  } else if (editingTarget.kind === "weaponTable") {
-    applyWeaponTableChange(document.getElementById("weapon-table-select").value);
+  } else if (editingTarget.kind === "ownWeapon") {
+    applyOwnWeaponChange(document.getElementById("own-weapon-select").value);
+  } else if (editingTarget.kind === "choiceWeapon") {
+    applyChoiceWeaponChange(document.getElementById("choice-weapon-select").value);
   } else if (editingTarget.kind === "subsystemItem") {
     const select = document.querySelector(
       `[data-subsystem-select][data-subsystem-index="${editingTarget.subsystemIndex}"][data-item-index="${editingTarget.itemIndex}"]`

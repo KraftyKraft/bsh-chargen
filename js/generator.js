@@ -106,19 +106,19 @@ function rollWeapon(originName) {
   return WEAPONS[originName][roll - 1];
 }
 
-// Clothes + fixed coins by origin + two weapon rolls: one on your own origin's
-// table, one on a table "of your choice" (SRD p.9/29) — randomized here as a
-// starting pick, but choiceOrigin stays player-editable after generation
-// (see applyWeaponTableChange in main.js), matching the SRD's actual wording.
+// Clothes + fixed coins by origin + two weapon rolls: one on your own
+// origin's table, one on a table "of your choice" (SRD p.9/29) — rolled here
+// on a random origin's table as a starting pick, but both weapons stay
+// directly player-editable afterward (see applyOwnWeaponChange /
+// applyChoiceWeaponChange in main.js), one step further than the SRD's
+// "pick a table" toward picking the exact weapon.
 function rollEquipment(originName) {
   const ownWeapon = rollWeapon(originName);
-  const choiceOrigin = ORIGIN_NAMES[rollDie(ORIGIN_NAMES.length) - 1];
-  const choiceWeapon = rollWeapon(choiceOrigin);
+  const choiceWeapon = rollWeapon(ORIGIN_NAMES[rollDie(ORIGIN_NAMES.length) - 1]);
 
   return {
     coins: STARTING_COINS[originName],
     ownWeapon,
-    choiceOrigin,
     choiceWeapon,
   };
 }

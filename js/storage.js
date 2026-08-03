@@ -36,20 +36,17 @@ function migrateCharacter(saved) {
     ...bg,
     slotType: bg.slotType ?? (i < 2 ? "origin" : "free"),
   }));
-  // Characters saved before the "table of your choice" weapon roll became
-  // editable stored a flattened, null-filtering weapons array with no record
-  // of which slot was which. Which original roll was null is unrecoverable,
-  // so this just reassigns the array positionally and defaults the newly
-  // player-editable choiceOrigin to the character's own origin — a legal
-  // table either way, and immediately correctable in the UI if it's wrong.
+  // Characters saved before weapon editing shipped stored a flattened,
+  // null-filtering weapons array with no record of which slot was which.
+  // Which original roll was null is unrecoverable, so this just reassigns
+  // the array positionally — flavor only, immediately correctable in the UI.
   if (saved.equipment && "weapons" in saved.equipment) {
     const [first = null, second = null] = saved.equipment.weapons;
-    saved.equipment = {
-      coins: saved.equipment.coins,
-      ownWeapon: first,
-      choiceOrigin: saved.origin.name,
-      choiceWeapon: second,
-    };
+    saved.equipment = { coins: saved.equipment.coins, ownWeapon: first, choiceWeapon: second };
   }
+  // Characters saved before the choice-weapon dropdown became a direct
+  // weapon pick still carry the now-unused choiceOrigin field — harmless,
+  // but dropped here so saves don't accumulate dead data going forward.
+  if (saved.equipment) delete saved.equipment.choiceOrigin;
   return saved;
 }
