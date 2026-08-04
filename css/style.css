@@ -51,6 +51,15 @@ footer a {
   color: var(--accent);
 }
 
+.version {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.version a {
+  color: var(--muted);
+}
+
 .compat-logo {
   display: inline-block;
   width: min(300px, 100%);

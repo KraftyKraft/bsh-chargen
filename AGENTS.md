@@ -42,6 +42,10 @@ Every editable field (origin, backgrounds, attributes, both weapon rolls, subsys
 
 When porting a rule from the SRD into code or data, cite the page number in a comment (e.g. `// SRD p.9, p.12`). The SRD's web edition is at https://blackswordhack.github.io/. Several features here go a step further than strict RAW toward player agency (e.g. picking an exact weapon rather than just "a table of your choice") — that's a deliberate choice (see above), not a fidelity bug.
 
+## Version number
+
+The footer shows a version (`1.XYZ`, e.g. `v1.001`), linked to the GitHub commit history — added so bug reports and "did my feature request land" questions have something concrete to reference. There's no build step generating it: it's a plain string in `index.html`'s footer, and every commit that ships to `main` bumps it by one. If you commit and push a change, bump it as part of that same commit — don't batch several changes under one version number, and don't skip it for something that feels minor.
+
 ## Testing
 
 There is no test framework. Changes are verified by hand in an actual browser (Chrome and Firefox, desktop and mobile viewports) — dropdown/reroll interactions, `localStorage` persistence across reload, and old-save migration in particular. Print/PDF layout can't be checked from on-screen CSS alone (`@page` margins and pagination don't apply to screen media) — use a headless Chrome print-to-PDF export to inspect real pagination when touching `css/style.css`'s `@media print` block.
